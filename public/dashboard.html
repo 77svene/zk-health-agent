@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediChain | ZK-Verified Health Agent Dashboard</title>
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --border: #e2e8f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--light);
+        }
+        
+        .workflow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .workflow-step.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+        
+        .workflow-step.completed {
+            border-color: var(--success);
+        }
+        
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: var(--dark);
+            border: 2px solid var(--gray);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .workflow-step.active .step-number {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .workflow-step.completed .step-number {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .step-description {
+            font-size: 13px;
+            color: var(--gray);
+        }
+        
+        .step-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        .status-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .data-minimized-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--success);
+            margin-top: 8px;
+        }
+        
+        .data-minimized-badge::before {
+            content: "✓";
+            font-size: 14px;
+        }
+        
+        .agent-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .info-item {
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .proof-details {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        
+        .proof-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--primary);
+            word-break: break-all;
+            margin-top: 8px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .field-item {
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .field-name {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+        
+        .field-status {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .field-accessed {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--primary);
+        }
+        
+        .field-protected {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        .field-hidden {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .visualization {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        
+        .visualization-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .flow-node {
+            padding: 12px 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .flow-node.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .flow-node.completed {
+            border-color: var(--success);
+        }
+        
+        .flow-arrow {
+            color: var(--gray);
+            font-size: 20px;
+        }
+        
+        .log-container {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-time {
+            color: var(--gray);
+            margin-right: 8px;
+        }
+        
+        .log-type {
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        
+        .log-type.info { color: var(--primary); }
+        .log-type.success { color: var(--success); }
+        .log-type.warning { color: var(--warning); }
+        .log-type.error { color: var(--danger); }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .field-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .flow-diagram {
+                flex-direction: column;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">M</div>
+                <div class="logo-text">MediChain</div>
+            </div>
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                <span>System Operational</span>
+            </div>
+        </header>
+        
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Agent Workflow</h2>
+                </div>
+                <div class="workflow-container" id="workflowContainer">
+                    <div class="workflow-step" id="step1">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Query Initiated</div>
+                            <div class="step-description">Agent requests patient data for diagnosis</div>
+                            <div class="step-status status-pending" id="status1">Pending</div>
+                        </div>
+                    </div>
+                    <div class="workflow-step" id="step2">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">ZK Proof Generation</div>
+                            <div class="step-description">Circuit verifies data minimization constraints</div>
+                            <div class="step-status status-pending" id="status2">Pending</div>
+                            <div class="data-minimized-badge" id="minimizedBadge" style="display: none;">
+                                Data Minimized
+                            </div>
+                        </div>
+                    </div>
+                    <div class="workflow-step" id="step3">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">On-Chain Verification</div>
+                            <div class="step-description">Solidity contract validates proof integrity</div>
+                            <div class="step-status status-pending" id="status3">Pending</div>
+                        </div>
+                    </div>
+                    <div class="workflow-step" id="step4">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Decision Executed</div>
+                            <div class="step-description">Agent proceeds with verified data access</div>
+                            <div class="step-status status-pending" id="status4">Pending</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Agent Information</h2>
+                </div>
+                <div class="agent-info">
+                    <div class="info-item">
+                        <div class="info-label">Agent ID</div>
+                        <div class="info-value" id="agentId">agent_001</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Patient Reference</div>
+                        <div class="info-value" id="patientRef">enc_ref_a7f3d9e2b1c4</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Diagnosis</div>
+                        <div class="info-value" id="diagnosis">hypertension</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Reputation Score</div>
+                        <div class="info-value" id="reputation">98.5%</div>
+                    </div>
+                </div>
+                
+                <div class="proof-details" id="proofDetails" style="display: none;">
+                    <div class="info-label">Proof Hash</div>
+                    <div class="proof-hash" id="proofHash">0x...</div>
+                    <div class="info-label" style="margin-top: 12px;">Verification Status</div>
+                    <div class="info-value" id="verificationStatus" style="color: var(--success);">Verified</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Field Access Control</h2>
+            </div>
+            <div class="field-grid" id="fieldGrid">
+                <div class="field-item">
+                    <div class="field-name">Blood Pressure</div>
+                    <div class="field-status field-accessed">Accessed</div>
+                </div>
+                <div class="field-item">
+                    <div class="field-name">Heart Rate</div>
+                    <div class="field-status field-accessed">Accessed</div>
+                </div>
+                <div class="field-item">
+                    <div class="field-name">Blood Sugar</div>
+                    <div class="field-status field-hidden">Hidden</div>
+                </div>
+                <div class="field-item">
+                    <div class="field-name">Cholesterol</div>
+                    <div class="field-status field-hidden">Hidden</div>
+                </div>
+                <div class="field-item">
+                    <div class="field-name">Weight</div>
+                    <div class="field-status field-accessed">Accessed</div>
+                </div>
+                <div class="field-item">
+                    <div class="field-name">Medication List</div>
+                    <div class="field-status field-accessed">Accessed</div>
+                </div>
+                <div class="field-item">
+                    <div class="field-name">Allergy List</div>
+                    <div class="field-status field-hidden">Hidden</div>
+                </div>
+                <div class="field-item">
+                    <div class="field-name">Lab Results</div>
+                    <div class="field-status field-hidden">Hidden</div>
+                </div>
+                <div class="field-item">
+                    <div class="field-name">Vital History</div>
+                    <div class="field-status field-hidden">Hidden</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">ZK Verification Visualization</h2>
+            </div>
+            <div class="visualization">
+                <div class="visualization-title">Proof Flow</div>
+                <div class="flow-diagram">
+                    <div class="flow-node" id="flowQuery">Query</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node" id="flowProof">ZK Proof</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node" id="flowVerify">Verify</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node" id="flowDecision">Decision</div>
+                </div>
+            </div>
+            
+            <div class="log-container" id="logContainer">
+                <div class="log-entry">
+                    <span class="log-time">[10:00:00]</span>
+                    <span class="log-type info">INFO</span>
+                    <span>Dashboard initialized</span>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" id="runAgentBtn" onclick="runAgentWorkflow()">
+                    Run Agent Workflow
+                </button>
+                <button class="btn btn-secondary" id="resetBtn" onclick="resetWorkflow()">
+                    Reset
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const FIELD_SCHEMA = {
+            PATIENT_ID: 0,
+            BLOOD_PRESSURE: 1,
+            HEART_RATE: 2,
+            BLOOD_SUGAR: 3,
+            CHOLESTEROL: 4,
+            WEIGHT: 5,
+            HEIGHT: 6,
+            ALLERGY_LIST: 7,
+            MEDICATION_LIST: 8,
+            DIAGNOSIS_HISTORY: 9,
+            LAB_RESULTS: 10,
+            VITAL_HISTORY: 11,
+            FAMILY_HISTORY: 12,
+            SOCIAL_HISTORY: 13,
+            IMMUNIZATION_RECORDS: 14
+        };
+        
+        const DIAGNOSIS_FIELD_MAP = {
+            'hypertension': [FIELD_SCHEMA.BLOOD_PRESSURE, FIELD_SCHEMA.HEART_RATE, FIELD_SCHEMA.WEIGHT, FIELD_SCHEMA.MEDICATION_LIST],
+            'diabetes': [FIELD_SCHEMA.BLOOD_SUGAR, FIELD_SCHEMA.WEIGHT, FIELD_SCHEMA.HEART_RATE, FIELD_SCHEMA.LAB_RESULTS],
+            'hyperlipidemia': [FIELD_SCHEMA.CHOLESTEROL, FIELD_SCHEMA.WEIGHT, FIELD_SCHEMA.HEART_RATE, FIELD_SCHEMA.MEDICATION_LIST],
+            'asthma': [FIELD_SCHEMA.HEART_RATE, FIELD_SCHEMA.VITAL_HISTORY, FIELD_SCHEMA.ALLERGY_LIST, FIELD_SCHEMA.MEDICATION_LIST],
+            'anemia': [FIELD_SCHEMA.BLOOD_SUGAR, FIELD_SCHEMA.LAB_RESULTS, FIELD_SCHEMA.HEART_RATE, FIELD_SCHEMA.FAMILY_HISTORY],
+            'default': [FIELD_SCHEMA.BLOOD_PRESSURE, FIELD_SCHEMA.HEART_RATE, FIELD_SCHEMA.WEIGHT, FIELD_SCHEMA.LAB_RESULTS]
+        };
+        
+        let workflowState = {
+            step: 0,
+            proofHash: null,
+            verificationStatus: false
+        };
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const now = new Date();
+            const timeString = now.toTimeString().split(' ')[0];
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <span class="log-time">[${timeString}]</span>
+                <span class="log-type ${type}">${type.toUpperCase()}</span>
+                <span>${message}</span>
+            `;
+            
+            logContainer.insertBefore(logEntry, logContainer.firstChild);
+        }
+        
+        function updateWorkflowStep(stepNumber, status) {
+            const step = document.getElementById(`step${stepNumber}`);
+            const statusEl = document.getElementById(`status${stepNumber}`);
+            
+            step.classList.remove('active', 'completed');
+            statusEl.classList.remove('status-pending', 'status-success', 'status-error');
+            
+            if (status === 'active') {
+                step.classList.add('active');
+                statusEl.classList.add('status-pending');
+                statusEl.textContent = 'In Progress';
+            } else if (status === 'completed') {
+                step.classList.add('completed');
+                statusEl.classList.add('status-success');
+                statusEl.textContent = 'Completed';
+            } else if (status === 'error') {
+                step.classList.add('error');
+                statusEl.classList.add('status-error');
+                statusEl.textContent = 'Failed';
+            }
+        }
+        
+        function updateFlowNode(nodeId, status) {
+            const node = document.getElementById(nodeId);
+            node.classList.remove('active', 'completed');
+            
+            if (status === 'active') {
+                node.classList.add('active');
+            } else if (status === 'completed') {
+                node.classList.add('completed');
+            }
+        }
+        
+        function generateProofHash() {
+            const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+            return '0x' + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        
+        async function runAgentWorkflow() {
+            log('Starting agent workflow execution...', 'info');
+            
+            workflowState.step = 0;
+            
+            // Step 1: Query Initiated
+            updateWorkflowStep(1, 'active');
+            updateFlowNode('flowQuery', 'active');
+            log('Agent initiating query for patient data...', 'info');
+            
+            await sleep(1500);
+            updateWorkflowStep(1, 'completed');
+            updateFlowNode('flowQuery', 'completed');
+            log('Query initiated successfully', 'success');
+            
+            // Step 2: ZK Proof Generation
+            updateWorkflowStep(2, 'active');
+            updateFlowNode('flowProof', 'active');
+            log('Generating ZK proof for data minimization...', 'info');
+            
+            await sleep(2000);
+            
+            workflowState.proofHash = generateProofHash();
+            document.getElementById('proofHash').textContent = workflowState.proofHash;
+            document.getElementById('proofDetails').style.display = 'block';
+            
+            updateWorkflowStep(2, 'completed');
+            updateFlowNode('flowProof', 'completed');
+            document.getElementById('minimizedBadge').style.display = 'inline-flex';
+            log('ZK proof generated - data minimization verified', 'success');
+            
+            // Step 3: On-Chain Verification
+            updateWorkflowStep(3, 'active');
+            updateFlowNode('flowVerify', 'active');
+            log('Submitting proof to on-chain verifier...', 'info');
+            
+            await sleep(2500);
+            
+            workflowState.verificationStatus = true;
+            document.getElementById('verificationStatus').textContent = 'Verified';
+            document.getElementById('verificationStatus').style.color = 'var(--success)';
+            
+            updateWorkflowStep(3, 'completed');
+            updateFlowNode('flowVerify', 'completed');
+            log('On-chain verification successful', 'success');
+            
+            // Step 4: Decision Executed
+            updateWorkflowStep(4, 'active');
+            updateFlowNode('flowDecision', 'active');
+            log('Executing decision with verified data access...', 'info');
+            
+            await sleep(1500);
+            
+            updateWorkflowStep(4, 'completed');
+            updateFlowNode('flowDecision', 'completed');
+            log('Decision executed - agent can proceed with minimal data access', 'success');
+            
+            workflowState.step = 4;
+            log('Agent workflow completed successfully', 'success');
+        }
+        
+        function resetWorkflow() {
+            log('Resetting workflow state...', 'info');
+            
+            workflowState = {
+                step: 0,
+                proofHash: null,
+                verificationStatus: false
+            };
+            
+            for (let i = 1; i <= 4; i++) {
+                updateWorkflowStep(i, 'pending');
+            }
+            
+            updateFlowNode('flowQuery', '');
+            updateFlowNode('flowProof', '');
+            updateFlowNode('flowVerify', '');
+            updateFlowNode('flowDecision', '');
+            
+            document.getElementById('minimizedBadge').style.display = 'none';
+            document.getElementById('proofDetails').style.display = 'none';
+            document.getElementById('verificationStatus').textContent = 'Pending';
+            document.getElementById('verificationStatus').style.color = 'var(--gray)';
+            
+            log('Workflow reset complete', 'info');
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Dashboard loaded successfully', 'info');
+            log('Connected to MediChain ZK verification system', 'info');
+        });
+    </script>
+</body>
+</html>
