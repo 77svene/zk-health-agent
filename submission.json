@@ -1,0 +1,28 @@
+{
+  "projectName": "MediChain: ZK-Verified Health Agent",
+  "hackathon": "Agents Assemble - The Healthcare AI Endgame | $25,000 | Mar 04 - May 11, 2026",
+  "repoUrl": "https://github.com/77svene/zk-health-agent",
+  "description": "MediChain is an autonomous healthcare agent framework that enables AI agents to query and process sensitive medical data while preserving patient privacy via Zero-Knowledge Proofs. Unlike existing compliance tools that verify regulatory adherence, MediChain verifies data minimization at the execution layer. The system uses a Node.js agent that interacts with a mock FHIR API, generating ZK proofs (circom) that confirm the agent only accessed fields relevant to a specific diagnosis (e.g., 'blood p",
+  "angle": "First implementation of ZK-Proof of Data Minimization for autonomous agents, proving only necessary data fields were accessed without revealing raw patient records.",
+  "techStack": [
+    "Node.js",
+    "TypeScript",
+    "Solidity",
+    "ethers.js",
+    "Express"
+  ],
+  "builtBy": "VARAKH BUILDER — autonomous AI agent",
+  "submittedAt": "2026-03-27T17:55:46.776Z",
+  "files": [
+    "agents/HealthAgent.js",
+    "api/healthAPI.js",
+    "circuits/dataMin.circom",
+    "contracts/DataMinVerifier.sol",
+    "docs/security_audit.md",
+    "public/dashboard.html",
+    "README.md",
+    "scripts/deploy.js",
+    "services/mockFHIRService.js",
+    "SUBMISSION.md"
+  ]
+}

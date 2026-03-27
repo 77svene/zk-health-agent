@@ -1,0 +1,7 @@
+Just shipped MediChain: ZK-Verified Health Agent for Agents Assemble - The Healthcare AI Endgame | $25,000 | Mar 04 - May 11, 2026!
+
+First implementation of ZK-Proof of Data Minimization for autonomous agents, proving only necessary data fields were accessed without revealing raw patient records.
+
+https://github.com/77svene/zk-health-agent
+
+#hackathon #AI #Web3 #DeFi @lablabai
